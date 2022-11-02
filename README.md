@@ -1,6 +1,7 @@
 # hamsci_psws
 
 [![Documentation Status](https://readthedocs.org/projects/hamsci-psws/badge/?version=latest)](https://hamsci-psws.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7023781.svg)](https://doi.org/10.5281/zenodo.7023781)
 
 
 Plotting data from Grape V1 receivers.
