@@ -447,6 +447,27 @@ class Grape1Data(object):
             fname = row['Filename']
             fpath = os.path.join(data_path,fname)
 
+            # Get metadata header.
+            with open(fpath,'r') as fl:
+                lines = fl.readlines()
+
+            md_list = []
+            for line in lines:
+                lst = line.lstrip().strip('\n')
+                if lst[0] == '#':
+                    md_list.append(lst)
+
+                # Get call sign from file metadata if not specified.
+                if lst.startswith('# Callsign'):
+                    if call_sign is None:
+                        call_sign = lst.split()[-1].upper()
+
+                if lat is None or lon is None:
+                    if lst.startswith('# Lat, Long, Elv'):
+                        tmp = lst[26:].split(',')
+                        lat = float(tmp[0])
+                        lon = float(tmp[1])
+
             df_load = pd.read_csv(fpath, comment = '#', parse_dates=[0])
             if len(df_load) == 0: continue
 
@@ -463,16 +484,21 @@ class Grape1Data(object):
      
         # Generate a label for each Node
         if (call_sign is None) and (grape_nodes is not None):
-            call_sign = grape_nodes.nodes_df.loc[node,'Callsign']
+            if node in grape_nodes.nodes_df.index: # Check to see if node is in current node list. If not, return ''
+                call_sign = grape_nodes.nodes_df.loc[node,'Callsign']
+            else:
+                call_sign = ''
         else:
             call_sign = ''
         
         # Get latitude and longitude
         if (lat is None) and (grape_nodes is not None):
-            lat = grape_nodes.nodes_df.loc[node,'Latitude']
+            if node in grape_nodes.nodes_df.index:
+                lat = grape_nodes.nodes_df.loc[node,'Latitude']
         
         if (lon is None) and (grape_nodes is not None):
-            lon = grape_nodes.nodes_df.loc[node,'Longitude']
+            if node in grape_nodes.nodes_df.index:
+                lon = grape_nodes.nodes_df.loc[node,'Longitude']
 
         if solar_lat is None:
             solar_lat = lat
