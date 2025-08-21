@@ -1,0 +1,61 @@
+name: Pylint
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        numpy_ver: ["latest"]
+        test_config: ["standard"]
+        include:
+          # Apexpy integration settings
+          - python-version: "3.11"
+            numpy_ver: "latest"
+            os: ubuntu-latest
+            test_config: "apex"
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install .[test]
+    - name: Install apexpy extras
+      if: ${{ matrix.test_config == 'apex' }}
+      run: pip install .[apexpy]
+      
+    - name: Analysing the code with pylint
+      run: |
+        pylint $(git ls-files '*.py')
+    - name: Run unit and integration tests
+      run: |
+        coverage run --rcfile=pyproject.toml -m unittest discover
+        coverage report
+        coverage xml --rcfile=pyproject.toml
+
+    - name: Coveralls Parallel
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        flag-name: run=${{ join(matrix.*, '-') }}
+        parallel: true
+        format: cobertura
+        debug: true
+
+  finish:
+    name: Finish Coverage Analysis
+    needs: build
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true
