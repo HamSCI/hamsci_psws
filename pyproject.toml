@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hamsci_psws"
+dynamic = ["version"]
 authors = [
   { name="Nathaniel A. Frissell", email="nathaniel.frissell@scranton.edu"},
-  { name="Kristina V. Collins"}
+  { name="Kristina V. Collins", email = "kvcollins@spacescience.org"}
 ]
-description = "HamSCI Grape v1 Personal Space Weather Station Plotting Tools"
+description = "HamSCI Personal Space Weather Station Plotting and Data Tools"
 readme = "README.md"
 license = {text = "GNU General Public License v3 (GPLv3)"}
 requires-python = ">=3.6"
@@ -18,29 +19,38 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "astropy>=5.0.0",
+    "digital_rf>=2.6.0",
     "beautifulsoup4",
-    "matplotlib",
+    "maidenhead>=1.5.0",
+    "matplotlib>=3.4.0",
     "netCDF4",
-    "numpy",
-    "pandas",
-    "plotly",
+    "numpy>=1.21.0",
+    "pandas>=1.3.0",
+    "plotly>=5.0.0",
     "python_dateutil",
     "pytz",
-    "requests",
-    "scipy",
+    "requests>=2.25.0",
+    "scipy>=1.7.0",
     "suntime",
     "tqdm",
-    "xarray"
+    "xarray>=0.20.0"
 ]
-dynamic = ["version"]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-mock>=3.6.0",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/HamSCI/hamsci_psws"
 "Bug Tracker" = "https://github.com/HamSCI/hamsci_psws/issues"
 "HamSCI Website" = "https://hamsci.org"
 
-[tool.setuptools]
-packages = ["hamsci_psws"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hamsci_psws*"]
 
-[tools.setuptools.dynamic]
+[tool.setuptools.dynamic]
 version = {attr = "hamsci_psws.__version__"}
