@@ -46,15 +46,15 @@ def plot_rx888_spectrogram(
     spec_times = Time(np.linspace(ts0, ts1, len(t_spec)), format="unix").datetime
 
     mesh = ax1.pcolormesh(spec_times, f, Sxx_db, cmap=cmap, shading="auto")
-    ax1.set_title(
-        f"Doppler Shift Spectrogram - {freq_mhz} MHz ({dataset.attrs.get('callsign', 'Station')})"
-    )
+    callsign = dataset.attrs.get("callsign", "Station")
+    ax1.set_title(f"Doppler Shift Spectrogram - {freq_mhz} MHz ({callsign})")
     ax1.set_xlabel("Time (UTC)")
     ax1.set_ylabel("Doppler Shift (Hz)")
 
-    cbar = fig.colorbar(mesh, ax=ax1, label="PSD (dB)")
+    # 1. Attach colorbar FIRST so ax1 resizes before twinx() is created
+    fig.colorbar(mesh, ax=ax1, label="PSD (dB)", pad=0.08)
 
-    # Astropy Solar Elevation Overlay
+    # 2. Solar Elevation Overlay on twinx() AFTER ax1 colorbar resize
     if overlay_solar and "latitude" in dataset.attrs and "longitude" in dataset.attrs:
         lat = dataset.attrs["latitude"]
         lon = dataset.attrs["longitude"]
@@ -62,19 +62,29 @@ def plot_rx888_spectrogram(
         solar_elev = calculate_solar_elevation(spec_times, lat, lon)
 
         ax2 = ax1.twinx()
-        ax2.plot(
+        (line_elev,) = ax2.plot(
             spec_times,
             solar_elev,
             color="white",
             linestyle="--",
             linewidth=1.5,
-            alpha=0.8,
+            alpha=0.9,
             label="Solar Elev (°)",
         )
-        ax2.axhline(0, color="yellow", linestyle=":", linewidth=1.0, alpha=0.6)  # Horizon
-        ax2.set_ylabel("Solar Elevation (°)", color="white")
-        ax2.tick_params(axis="y", labelcolor="white")
+        ax2.axhline(0, color="yellow", linestyle=":", linewidth=1.0, alpha=0.7)  # Horizon line
+        ax2.set_ylabel("Solar Elevation (°)", color="black", fontsize=10)
+        ax2.tick_params(axis="y", labelcolor="black", labelsize=9)
         ax2.set_ylim(-90, 90)
+
+        # Inset dark legend box inside top right of plot frame
+        ax2.legend(
+            handles=[line_elev],
+            loc="upper right",
+            facecolor="black",
+            labelcolor="white",
+            framealpha=0.6,
+            fontsize=9,
+        )
 
     fig.tight_layout()
     if output_path:
