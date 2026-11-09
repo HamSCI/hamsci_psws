@@ -1,3 +1,4 @@
+from pathlib import Path
 """
 grape1.py
 
@@ -1149,3 +1150,34 @@ class GrapeMultiplot(object):
             gl.adjust_axes(axs[0],axs[-1])
 
         return {'fig':fig,'axs':axs}
+    from pathlib import Path
+
+def read_grape_csv(filepath):
+    """
+    Parses a Grape V1 legacy CSV file into a metadata dictionary and DataFrame.
+    """
+    filepath = Path(filepath)
+    metadata = {}
+    
+    # Read comment header lines starting with '#'
+    with open(filepath, 'r') as fl:
+        lines = fl.readlines()
+
+    for line in lines:
+        lst = line.strip()
+        if lst.startswith('#'):
+            if ':' in lst:
+                key, val = lst[1:].split(':', 1)
+                metadata[key.strip().lower()] = val.strip()
+            elif 'Callsign' in lst:
+                metadata['callsign'] = lst.split()[-1].upper()
+            elif 'Lat, Long, Elv' in lst:
+                parts = lst.split(':')[-1].split(',')
+                if len(parts) >= 2:
+                    metadata['latitude'] = float(parts[0].strip())
+                    metadata['longitude'] = float(parts[1].strip())
+        else:
+            break
+
+    df = pd.read_csv(filepath, comment='#', parse_dates=[0])
+    return metadata, df
